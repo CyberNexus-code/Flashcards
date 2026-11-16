@@ -122,8 +122,8 @@ To build and run the application, you need:
 
 ## Database setup
 
-The default connection string in `Flashcards/appsettings.json` is
-configured for SQL Server LocalDB:
+Create appsettings.json in the root direcotry: `Flashcards/appsettings.json`. 
+The default connection string should be configured for SQL Server LocalDB:
 
 ``` json
 {
