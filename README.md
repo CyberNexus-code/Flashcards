@@ -122,7 +122,7 @@ To build and run the application, you need:
 
 ## Database setup
 
-Create appsettings.json in the root direcotry: `Flashcards/appsettings.json`. 
+Create appsettings.json in the root directory: `Flashcards/appsettings.json`. 
 The default connection string should be configured for SQL Server LocalDB:
 
 ``` json
