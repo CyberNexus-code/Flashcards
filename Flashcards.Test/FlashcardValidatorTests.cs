@@ -3,7 +3,7 @@ using Flashcards.Validation;
 
 namespace Flashcards.Test
 {
-    public class FlashcardTests
+    public class FlashcardValidatorTests
     {
 
         //A flashcard with non-empty fron and back is valid
@@ -30,9 +30,22 @@ namespace Flashcards.Test
             Assert.False(result);
         }
 
-        //public bool FlascardIsInvalid_WhenBackIsEmpty()
-        //{
+        [Theory]
+        [InlineData("Front data", "")]
+        [InlineData("", "")]
+        [InlineData("", "Back data")]
 
-        //}
+        public async Task FlashCardIsInvalid_WhenFrontOrBackIsEmpty(string front, string back)
+        {
+            var flashcard = new Flashcard
+            {
+                Front = front,
+                Back = back
+            };
+
+            var result = await FlashcardValidator.ValidateFlashcard(flashcard);
+
+            Assert.False(result);
+        }
     }
 }

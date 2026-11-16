@@ -1,5 +1,4 @@
 ﻿using Flashcards.Extensions;
-using Flashcards.Repositories;
 using Flashcards.UI;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -10,9 +9,8 @@ builder.Services.AddCustomServices();
 
 using var host = builder.Build();
 
-var repository = host.Services.GetRequiredService<FlashcardRepository>();
+using var scope = host.Services.CreateScope();
 
 var mainMenu = host.Services.GetRequiredService<MainMenu>();
 
-
-mainMenu.Show();
+await mainMenu.Show();

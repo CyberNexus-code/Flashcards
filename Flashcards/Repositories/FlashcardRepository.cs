@@ -1,6 +1,9 @@
-﻿using Flashcards.Entities;
+﻿using Flashcards.DTOs;
+using Flashcards.Entities;
+using Flashcards.Interfaces;
 using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Configuration;
+using System.Data;
 
 namespace Flashcards.Repositories
 {
@@ -14,27 +17,35 @@ namespace Flashcards.Repositories
                 ?? throw new InvalidOperationException("Connection string 'MSSql' was not found");
         }
 
-        public void PrintConnectionString()
-        {
-            Console.WriteLine(_connectionString);
-            Console.ReadKey();
-        }
-
-        public async Task<List<Flashcard>> GetAllFlashcardsAsync(CancellationToken cancellationToken = default)
+        public async Task<List<Flashcard>> GetAllFlashcardsAsync(int? stackId)
         {
             var flashcards = new List<Flashcard>();
 
             await using var connection = new SqlConnection(_connectionString);
 
-            await connection.OpenAsync(cancellationToken);
+            await connection.OpenAsync();
 
-            const string query = """SELECT Id, Front, Back, StackID FROM Flashcards""";
+            string query = "";
+
+            if (stackId != null)
+            {
+                query = """SELECT Id, Front, Back, StackID FROM Flashcards WHERE StackId = @StackId ORDER BY Id""";
+            }
+            else
+            {
+                query = """SELECT Id, Front, Back, StackID FROM Flashcards ORDER BY Id""";
+            }
 
             await using var command = new SqlCommand(query, connection);
 
-            await using var reader = await command.ExecuteReaderAsync(cancellationToken);
+            if (stackId != null)
+            {
+                command.Parameters.Add("@StackId", SqlDbType.Int).Value = stackId;
+            }
 
-            while (await reader.ReadAsync(cancellationToken))
+            await using var reader = await command.ExecuteReaderAsync();
+
+            while (await reader.ReadAsync())
             {
                 var flashcard = new Flashcard
                 {
@@ -48,6 +59,56 @@ namespace Flashcards.Repositories
             }
 
             return flashcards;
+        }
+
+        public async Task CreateFlashcardAsync(FlashcardDTO flashcard)
+        {
+            await using var connection = new SqlConnection(_connectionString);
+
+            await connection.OpenAsync();
+
+            const string query = @"INSERT INTO Flashcards (Front, Back, StackID) Values (@Front, @Back, @StackID)";
+
+            await using var command = new SqlCommand(query, connection);
+
+            command.Parameters.Add("@Front", SqlDbType.NVarChar).Value = flashcard.Front;
+            command.Parameters.Add("@Back", SqlDbType.NVarChar).Value = flashcard.Back;
+            command.Parameters.Add("@StackId", SqlDbType.Int).Value = flashcard.StackId;
+
+            await command.ExecuteNonQueryAsync();
+        }
+
+        public async Task UpdateFlashcardAsync(FlashcardDTO flashcard)
+        {
+            await using var connection = new SqlConnection(_connectionString);
+
+            await connection.OpenAsync();
+
+            const string query = @"UPDATE Flashcards SET StackId = @StackId, Front = @Front, Back = @Back WHERE Id = @Id";
+
+            await using var command = new SqlCommand(query, connection);
+
+            command.Parameters.Add("@StackId", SqlDbType.Int).Value = flashcard.StackId;
+            command.Parameters.Add("@Front", SqlDbType.NVarChar).Value = flashcard.Front;
+            command.Parameters.Add("@Back", SqlDbType.NVarChar).Value = flashcard.Back;
+            command.Parameters.Add("@Id", SqlDbType.Int).Value = flashcard.Id;
+
+            await command.ExecuteNonQueryAsync();
+        }
+
+        public async Task DeleteFlashcardAsync(FlashcardDTO flashcard)
+        {
+            await using var connection = new SqlConnection(_connectionString);
+
+            await connection.OpenAsync();
+
+            const string query = @"DELETE FROM Flashcards WHERE Id = @Id";
+
+            await using var command = new SqlCommand(query, connection);
+
+            command.Parameters.Add("@Id", SqlDbType.Int).Value = flashcard.Id;
+
+            await command.ExecuteNonQueryAsync();
         }
     }
 }

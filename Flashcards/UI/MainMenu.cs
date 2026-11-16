@@ -2,35 +2,53 @@
 
 namespace Flashcards.UI
 {
-    public class MainMenu
+    internal class MainMenu
     {
+        private readonly StackMenu _stackMenu;
+        private readonly FlashcardMenu _flashcardMenu;
+        private readonly StudySessionMenu _studySessionMenu;
+        private readonly ReportsMenu _reportsMenu;
+        public MainMenu(StackMenu stackMenu, FlashcardMenu flashcardMenu, StudySessionMenu studySessionMenu, ReportsMenu reportsMenu)
+        {
+            _stackMenu = stackMenu;
+            _flashcardMenu = flashcardMenu;
+            _studySessionMenu = studySessionMenu;
+            _reportsMenu = reportsMenu;
+        }
 
-        public void Show()
+        internal async Task Show()
         {
             bool isRunning = true;
 
             while (isRunning)
             {
+                AnsiConsole.Clear();
 
-                var choise = AnsiConsole.Prompt(new SelectionPrompt<MainMenuChoices>()
+                var choice = AnsiConsole.Prompt(new SelectionPrompt<MainMenuChoices>()
                     .Title("Main Menu")
                     .UseConverter(c => c switch
                     {
-                        MainMenuChoices.StartStudySession => "Start a study session",
+                        MainMenuChoices.StartStudySession => "Study session",
                         MainMenuChoices.ManageStacks => "Manage Stacks",
                         MainMenuChoices.ManageFlashcards => "Manage Flashcards",
+                        MainMenuChoices.Reports => "Reports",
                         MainMenuChoices.Exit => "Exit"
                     })
                     .AddChoices(Enum.GetValues<MainMenuChoices>()));
 
-
-                switch (choise)
+                switch (choice)
                 {
                     case MainMenuChoices.StartStudySession:
+                        await _studySessionMenu.Show();
                         break;
                     case MainMenuChoices.ManageStacks:
+                        await _stackMenu.Show();
                         break;
                     case MainMenuChoices.ManageFlashcards:
+                        await _flashcardMenu.Show();
+                        break;
+                    case MainMenuChoices.Reports:
+                        await _reportsMenu.Show();
                         break;
                     case MainMenuChoices.Exit:
                         isRunning = false;
@@ -47,5 +65,6 @@ enum MainMenuChoices
     StartStudySession,
     ManageStacks,
     ManageFlashcards,
+    Reports,
     Exit
 }
